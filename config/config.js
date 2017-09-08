@@ -1,5 +1,5 @@
 module.exports = {
-    secret: 'lquercoisaksadnckjadscdscdscndc',
+    secret: 'lqueroutracoisaksadnckjadscdscdscndc',
 
 
 }

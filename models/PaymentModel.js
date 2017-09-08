@@ -9,7 +9,7 @@ const PaymentSchema = new Schema({
     },
     service: require('./fields/required-field.js')('String'),
     infoType: require('./fields/required-field.js')('String'),
-    data :require('./fields/required-field.js')('Mixed')
+    data: require('./fields/required-field.js')('Mixed')
 });
 
 PaymentSchema.plugin(require('./plugins/timestamp.js'));

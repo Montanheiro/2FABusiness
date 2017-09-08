@@ -11,6 +11,6 @@ module.exports = (mongoose) => {
     // const url = 'mongodb://127.0.0.1:27017/cardapio01';
     // mongoose.connect(url, options);
 
-    const url = 'mongodb://127.0.0.1:27017/nerdezoeiro';
+    const url = 'mongodb://127.0.0.1:27017/businessauth';
     mongoose.connect(url)
 }
