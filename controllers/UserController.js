@@ -3,16 +3,16 @@ const User = require('../models/UserModel.js');
 module.exports = {
 
     get: (req, res, next) => {
-        logger.debug('[User Controller]', 'Parametros GETUser', req.companyID);
-        let companyID = req.companyID;
+        logger.debug('[User Controller]', 'Parametros GETUser', req.userID);
+        let userID = req.userID;
         User.findOne({
-                _id: companyID
+                _id: userID
             }).lean()
-            .then((company) => {
-                logger.debug('[User Controller]', 'Dados da empresa recuperados com sucesso', company);
+            .then((user) => {
+                logger.debug('[User Controller]', 'Dados da empresa recuperados com sucesso', user);
                 res.status(200).json({
                     success: true,
-                    company: company
+                    user: user
                 })
             })
             .catch((err) => { //Caso algum erro ocorra
@@ -20,7 +20,7 @@ module.exports = {
                 res.status(500).json({
                     success: false,
                     msg: 'Erro ao buscar os dados da companhia!',
-                    company: null,
+                    user: null,
                     err: err.errmsg
                 });
             });
@@ -28,10 +28,10 @@ module.exports = {
 
 
     edit: (req, res, next) => {
-        logger.debug('[User Controller]', 'Parametros editUser', req.companyID, req.body);
+        logger.debug('[User Controller]', 'Parametros editUser', req.userID, req.body);
         //Pegar dados da compania logada, via token
-        const companyID = req.companyID;
-        const companyUpd = {
+        const userID = req.userID;
+        const userUpd = {
             fantasyName: req.body.fantasyName,
             corporateName: req.body.corporateName,
             email: req.body.email,
@@ -44,16 +44,16 @@ module.exports = {
         };
 
         User.update({
-                _id: companyID
+                _id: userID
             }, {
-                $set: companyUpd
+                $set: userUpd
             })
-            .then((companyMod) => { //Caso a companhia seja alterada com sucesso, a retorna ao cliente
+            .then((userMod) => { //Caso a companhia seja alterada com sucesso, a retorna ao cliente
                 //Como foi realizada uma alteração nos dados do usuário, um novo token é gerado
                 //cria o token com validade de 24h
-                logger.debug('[User Controller]', 'Empresa editada com sucesso', companyMod);
+                logger.debug('[User Controller]', 'Empresa editada com sucesso', userMod);
                 logger.debug('[User Controller]', 'Gerar novo token...');
-                require('../lib/generateJWT.js')(companyMod)
+                require('../lib/generateJWT.js')(userMod)
                     .then((success) => {
                         logger.debug('[User Controller]', 'Token gerado com sucesso', success);
                         res.status(200).json(success);
@@ -77,41 +77,41 @@ module.exports = {
 
     changePassword: (req, res, next) => {
         //Pegar dados da compania logada, via token
-        logger.debug('[User Controller]', 'Parametros changePassword', req.companyID, req.body);
-        const companyID = req.companyID;
+        logger.debug('[User Controller]', 'Parametros changePassword', req.userID, req.body);
+        const userID = req.userID;
         let fields = {
             email: 1,
             password: 1
         };
 
         User.findOne({
-                _id: companyID
+                _id: userID
             }, fields)
-            .then((company) => {
-                logger.debug('[User Controller]', 'Dados da empresa recuperados', company);
-                if (!company) { //Não foi encontrado companhia com o name passado
-                    logger.debug('[User Controller]', 'Erro ao encontrar empresa com email passado', company);
+            .then((user) => {
+                logger.debug('[User Controller]', 'Dados da empresa recuperados', user);
+                if (!user) { //Não foi encontrado companhia com o name passado
+                    logger.debug('[User Controller]', 'Erro ao encontrar empresa com email passado', user);
                     res.status(500).json({
                         success: false,
                         token: null,
                         msg: 'A autenticação falhou. Empresa não encontrada!'
                     });
                 } else {
-                    logger.debug('[User Controller]', 'Empresa encontrada. Verificar senha passada', company);
-                    company.comparePassword(req.body.oldPassword, (err, isMatch) => {
+                    logger.debug('[User Controller]', 'Empresa encontrada. Verificar senha passada', user);
+                    user.comparePassword(req.body.oldPassword, (err, isMatch) => {
                         if (isMatch && !err) { //Caso a senha passada esteja correta
                             //Altera somente o password da compania logada
                             logger.debug('[User Controller]', 'Senha correta. Atualizar senha no DB...');
                             User.findOneAndUpdate({
-                                    _id: companyID
+                                    _id: userID
                                 }, {
                                     password: req.body.newPassword
                                 })
-                                .then((companyMod) => { //Caso a companhia seja alterada com sucesso, a retorna ao cliente
-                                    logger.debug('[User Controller]', 'Senha atualizada com sucesso', companyMod);
-                                    if (companyMod) {
+                                .then((userMod) => { //Caso a companhia seja alterada com sucesso, a retorna ao cliente
+                                    logger.debug('[User Controller]', 'Senha atualizada com sucesso', userMod);
+                                    if (userMod) {
                                         logger.debug('[User Controller]', 'Gerar novo Token...');
-                                        require('../lib/generateJWT.js')(companyMod)
+                                        require('../lib/generateJWT.js')(userMod)
                                             .then((success) => {
                                                 logger.debug('[User Controller]', 'Token gerado com sucesso. Senha alterada!', success);
                                                 success.msg = "Senha alterada com sucesso!";
@@ -194,9 +194,9 @@ module.exports = {
             param[fieldName] = fieldValue;
             const field = { _id: 1 };
             User.find(param, field)
-                .then((company) => {
-                    if (company.length >= 1) {
-                        logger.debug('[User Controller]', 'User Recuperada', company[0]._id);
+                .then((user) => {
+                    if (user.length >= 1) {
+                        logger.debug('[User Controller]', 'User Recuperada', user[0]._id);
                         res.status(200).json({
                             success: false,
                             msg: `${fieldName}: ${fieldValue} já cadastrado!`
@@ -209,7 +209,7 @@ module.exports = {
                     }
                 })
                 .catch((err) => {
-                    logger.error('[User Controller]', 'Erro ao recuperar company', err.errmsg);
+                    logger.error('[User Controller]', 'Erro ao recuperar user', err.errmsg);
                     res.status(200).json({
                         success: false,
                         msg: 'Erro ao recuperar dados da empresa!',
