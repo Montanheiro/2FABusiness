@@ -15,4 +15,4 @@ const GroupSchema = new Schema({
 GroupSchema.plugin(require('./plugins/timestamp.js'));
 
 
-module.exports = mongoose.model('Group', GroupSchema);
+module.exports = GroupSchema;
