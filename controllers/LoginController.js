@@ -7,11 +7,13 @@ module.exports = {
     signup: (req, res, next) => {
         logger.debug('[Login Controller]', 'Parametros Signup', req.body);
         //Cadastra uma nova empresa
-        let newBusiness = new Business(req.body.business);
+        let newBusiness = new Business({
+            name: req.body.businessName
+        });
         newBusiness.save()
             .then((business) => {
                 logger.debug('[Login Controller]', 'Empresa criada com sucesso');
-                let newUser = new User(req.body.user);
+                let newUser = new User(req.body);
                 newUser.businessId = business._id;
                 newUser.save()
                     .then((user) => { //Usuário criado com sucesso
@@ -22,7 +24,7 @@ module.exports = {
                         });
                     })
                     .catch((err) => { //Algum erro durante a criaçãos
-                        logger.error('[Login Controller]', 'Erro ao cadastrar Usuário', err.errmsg);
+                        logger.error('[Login Controller]', 'Erro ao cadastrar Usuário', err);
                         res.status(500).json({
                             success: false,
                             msg: "Erro ao cadastrar nova conta. Tente novamente!",
@@ -31,13 +33,12 @@ module.exports = {
                     });               
             })
             .catch((err) => {
-                logger.error('[Login Controller]', 'Erro ao cadastrar Usuário', err.errmsg);
+                logger.error('[Login Controller]', 'Erro ao cadastrar Usuário', err);
                 res.status(500).json({
                     success: false,
                     msg: "Erro ao cadastrar nova empresa. Tente novamente!",
                     err: err,
-                    req: req.body,
-                    name: req.body.business.name
+                    req: req.body
                 });
             });
     },
