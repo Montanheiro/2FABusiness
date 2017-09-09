@@ -35,7 +35,8 @@ module.exports = {
                 res.status(500).json({
                     success: false,
                     msg: "Erro ao cadastrar nova empresa. Tente novamente!",
-                    err: err.errmsg
+                    err: err.errmsg,
+                    req: req.body
                 });
             });
     },
