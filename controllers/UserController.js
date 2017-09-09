@@ -32,15 +32,7 @@ module.exports = {
         //Pegar dados da compania logada, via token
         const userID = req.userID;
         const userUpd = {
-            fantasyName: req.body.fantasyName,
-            corporateName: req.body.corporateName,
-            email: req.body.email,
-            cpnj: req.body.cpnj,
-            phone: req.body.phone,
-            whatsapp: req.body.whatsapp,
-            address: req.body.address,
-            social: req.body.social,
-            friendlyUrl: req.body.friendlyUrl
+            name: req.body.name
         };
 
         User.update({
@@ -51,7 +43,7 @@ module.exports = {
             .then((userMod) => { //Caso a companhia seja alterada com sucesso, a retorna ao cliente
                 //Como foi realizada uma alteração nos dados do usuário, um novo token é gerado
                 //cria o token com validade de 24h
-                logger.debug('[User Controller]', 'Empresa editada com sucesso', userMod);
+                logger.debug('[User Controller]', 'Usuário editada com sucesso', userMod);
                 logger.debug('[User Controller]', 'Gerar novo token...');
                 require('../lib/generateJWT.js')(userMod)
                     .then((success) => {
@@ -60,16 +52,16 @@ module.exports = {
                     })
                     .catch((err) => {
                         logger.error('[User Controller]', 'Erro ao gerar novo token', err);
-                        err.msg = "Erro ao gerar token na edição da empresa. Tente novamente!";
+                        err.msg = "Erro ao gerar token na edição do usuário. Tente novamente!";
                         res.status(500).json(err);
                     })
             })
             .catch((err) => { //Caso aconteca algum erro na edição
-                logger.error('[User Controller]', 'Erro ao editar empresa', err.errmsg);
+                logger.error('[User Controller]', 'Erro ao editar usuário', err.errmsg);
                 res.status(500).json({
                     success: false,
                     token: null,
-                    msg: 'Erro ao editar Empresa. Tente novamente!',
+                    msg: 'Erro ao editar Usuário. Tente novamente!',
                     err: err.errmsg
                 });
             });
@@ -88,16 +80,16 @@ module.exports = {
                 _id: userID
             }, fields)
             .then((user) => {
-                logger.debug('[User Controller]', 'Dados da empresa recuperados', user);
+                logger.debug('[User Controller]', 'Dados do usuário recuperados', user);
                 if (!user) { //Não foi encontrado companhia com o name passado
-                    logger.debug('[User Controller]', 'Erro ao encontrar empresa com email passado', user);
+                    logger.debug('[User Controller]', 'Erro ao encontrar usuário com email passado', user);
                     res.status(500).json({
                         success: false,
                         token: null,
-                        msg: 'A autenticação falhou. Empresa não encontrada!'
+                        msg: 'A autenticação falhou. Usuário não encontrado!'
                     });
                 } else {
-                    logger.debug('[User Controller]', 'Empresa encontrada. Verificar senha passada', user);
+                    logger.debug('[User Controller]', 'Usuário encontrado. Verificar senha passada', user);
                     user.comparePassword(req.body.oldPassword, (err, isMatch) => {
                         if (isMatch && !err) { //Caso a senha passada esteja correta
                             //Altera somente o password da compania logada
@@ -153,7 +145,7 @@ module.exports = {
                 }
             })
             .catch((err) => { //Erro ao buscar usuário e/ou senha
-                logger.error('[User Controller]', 'Erro ao recuperar dados da empresa', err.errmsg);
+                logger.error('[User Controller]', 'Erro ao recuperar dados do usuário', err.errmsg);
                 res.status(500).json({
                     success: false,
                     msg: 'A autenticação falhou. Usuário e/ou Senha incorretos!',
@@ -212,7 +204,7 @@ module.exports = {
                     logger.error('[User Controller]', 'Erro ao recuperar user', err.errmsg);
                     res.status(200).json({
                         success: false,
-                        msg: 'Erro ao recuperar dados da empresa!',
+                        msg: 'Erro ao recuperar dados do usuário!',
                         err: err.errmsg
                     });
                 })
