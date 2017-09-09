@@ -36,7 +36,8 @@ module.exports = {
                     success: false,
                     msg: "Erro ao cadastrar nova empresa. Tente novamente!",
                     err: err.errmsg,
-                    req: req.body
+                    req: req.body,
+                    name: req.body.business.name
                 });
             });
     },
