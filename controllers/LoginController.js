@@ -1,26 +1,40 @@
-const Company = require('../models/CompanyModel.js');
+const User = require('../models/UserModel.js');
+const Business = require('../models/BusinessModel.js');
 const config = require('../config/config.js');
 const jwt = require('jsonwebtoken');
 
 module.exports = {
-    //Cadastra uma nova empresa
     signup: (req, res, next) => {
         logger.debug('[Login Controller]', 'Parametros Signup', req.body);
-        //TODO verificar dados já existente CNPJ, Email e razão social
-        let newCompany = new Company(req.body);
-        newCompany.save()
-            .then((company) => { //Usuário criado com sucesso
-                logger.debug('[Login Controller]', 'Empresa salva com sucesso');
-                res.status(200).json({
-                    success: true,
-                    msg: "Conta cadastrada com sucesso!",
-                });
+        //Cadastra uma nova empresa
+        let newBusiness = new Business(req.body.business);
+        newBusiness.save()
+            .then((business) => {
+                logger.debug('[Login Controller]', 'Empresa criada com sucesso');
+                let newUser = new User(req.body.user);
+                newUser.businessId = business._id;
+                newUser.save()
+                    .then((user) => { //Usuário criado com sucesso
+                        logger.debug('[Login Controller]', 'Usuário salvo com sucesso');
+                        res.status(200).json({
+                            success: true,
+                            msg: "Conta cadastrada com sucesso!",
+                        });
+                    })
+                    .catch((err) => { //Algum erro durante a criaçãos
+                        logger.error('[Login Controller]', 'Erro ao cadastrar Usuário', err.errmsg);
+                        res.status(500).json({
+                            success: false,
+                            msg: "Erro ao cadastrar nova conta. Tente novamente!",
+                            err: err.errmsg
+                        });
+                    });               
             })
-            .catch((err) => { //Algum erro durante a criaçãos
-                logger.error('[Login Controller]', 'Erro ao cadastrar Empresa', err.errmsg);
+            .catch((err) => {
+                logger.error('[Login Controller]', 'Erro ao cadastrar Usuário', err.errmsg);
                 res.status(500).json({
                     success: false,
-                    msg: "Erro ao cadastrar nova conta. Tente novamente!",
+                    msg: "Erro ao cadastrar nova empresa. Tente novamente!",
                     err: err.errmsg
                 });
             });
@@ -33,13 +47,13 @@ module.exports = {
             email: 1,
             password: 1
         };
-        Company.findOne({
+        User.findOne({
                 email: req.body.email
             }, fields)
-            .then((company) => {
-                logger.debug('[Login Controller]', 'Retorno dados da empresa', company.email);
-                if (!company) { //Não foi encontrado companhia com o name passado
-                    logger.debug('[Login Controller]', 'Não existe empresa com email fornecido');
+            .then((user) => {
+                logger.debug('[Login Controller]', 'Retorno dados do usuário', user.email);
+                if (!user) { 
+                    logger.debug('[Login Controller]', 'Não existe usuário com email fornecido');
                     res.status(500).json({
                         success: false,
                         token: null,
@@ -47,10 +61,10 @@ module.exports = {
                     });
                 } else {
                     logger.debug('[Login Controller]', 'Empresa encontrada. Verificar senha...');
-                    company.comparePassword(req.body.password, (err, isMatch) => {
+                    user.comparePassword(req.body.password, (err, isMatch) => {
                         if (isMatch && !err) { //Caso a senha passada esteja correta
                             logger.debug('[Login Controller]', 'Senha correta. Gerar token...');
-                            require('../lib/generateJWT.js')(company)
+                            require('../lib/generateJWT.js')(user)
                                 .then((success) => {
                                     logger.debug('[Login Controller]', 'Token gerado com sucesso', success);
                                     res.status(200).json(success);
@@ -83,12 +97,12 @@ module.exports = {
 
     //Realiza o logout da empresa do sistema admin
     logout: (req, res, next) => {
-        logger.debug('[Login Controller]', 'Parametros logout', req.companyID);
-        const companyID = req.companyID; //Recupera a empresa logada pelo token passado
+        logger.debug('[Login Controller]', 'Parametros logout', req.userID);
+        const userID = req.userID; //Recupera a empresa logada pelo token passado
 
         //Invalida o token cadastrado para a empresa.
-        Company.update({
-                _id: companyID
+        User.update({
+                _id: userID
             }, {
                 $set: {
                     accessToken: null
@@ -124,12 +138,12 @@ module.exports = {
         logger.debug('[Login Controller]', 'Parametros para recuperar senha', req.body);
 		const newPass = 'cardapio01';
 		logger.debug('[Login Controller]', 'Nova senha gerada', newPass);
-		Company.findOneAndUpdate({
+		User.findOneAndUpdate({
                 email: req.body.email
             }, {
                 password: newPass
             })
-            .then((companyMod) => {
+            .then((userMod) => {
                 logger.debug('[Login Controller]', 'Senha temporária salva com sucesso');
 				req.body.newPass = newPass;
 				require('../lib/email/recoveryPassEmail.js')(req.body)
