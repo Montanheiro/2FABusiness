@@ -26,7 +26,7 @@ module.exports = {
                         res.status(500).json({
                             success: false,
                             msg: "Erro ao cadastrar nova conta. Tente novamente!",
-                            err: err.errmsg
+                            err: err
                         });
                     });               
             })
@@ -35,7 +35,7 @@ module.exports = {
                 res.status(500).json({
                     success: false,
                     msg: "Erro ao cadastrar nova empresa. Tente novamente!",
-                    err: err.errmsg,
+                    err: err,
                     req: req.body,
                     name: req.body.business.name
                 });
